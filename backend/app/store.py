@@ -28,15 +28,28 @@ class Store:
         return None
 
     def overview(self) -> dict[str, object]:
+        # 流量监测的状态判定委托给 FlowService，与列表/详情页共用同一口径，
+        # 不再依赖种子数据里可能写歪的 pending/abnormal 标志。
+        from app.services import flow as flow_service
+
         modules: list[dict[str, object]] = []
         for name in self.module_names():
             rows = self.rows(name)
-            modules.append({
-                "name": name,
-                "created": len(rows),
-                "pending": sum(1 for row in rows if row.get("pending")),
-                "abnormal": sum(1 for row in rows if row.get("abnormal")),
-            })
+            if name == flow_service.MODULE:
+                stats = flow_service.FlowService().stats()
+                modules.append({
+                    "name": name,
+                    "created": len(rows),
+                    "pending": stats["pending"],
+                    "abnormal": stats["abnormal"],
+                })
+            else:
+                modules.append({
+                    "name": name,
+                    "created": len(rows),
+                    "pending": sum(1 for row in rows if row.get("pending")),
+                    "abnormal": sum(1 for row in rows if row.get("abnormal")),
+                })
         cards = [
             {"label": "业务模块", "value": len(modules)},
             {"label": "今日新增", "value": sum(int(item["created"]) for item in modules)},
