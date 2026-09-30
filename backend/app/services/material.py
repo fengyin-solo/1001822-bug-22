@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.services._support import commit_new, commit_status
 from app.store import store
 
 MODULE = "material"
@@ -41,9 +42,9 @@ class MaterialService:
         entry = {"id": max((int(row.get("id", 0)) for row in rows), default=0) + 1}
         entry.update({field: values.get(field) for field in REQUIRED_FIELDS})
         entry["status"] = STATUS_ORDER[0]
-        entry["pending"] = True
-        entry["abnormal"] = False
-        rows.append(entry)
+        error = commit_new(MODULE, entry, rows)
+        if error:
+            return None, [error]
         return entry, []
 
     def run_action(self, entry_id: int, action: str) -> tuple[dict[str, Any] | None, str]:
@@ -55,7 +56,9 @@ class MaterialService:
         target = ACTION_RULES[action]
         if target not in STATUS_ORDER:
             return None, f"目标状态「{target}」不在允许的状态序列里"
-        entry["status"] = target
-        entry["pending"] = target != STATUS_ORDER[-1]
-        entry["abnormal"] = action in NEGATIVE_ACTIONS
+        if entry.get("status") == target:
+            return entry, f"养护材料已是「{target}」，重复提交未重复执行"
+        error = commit_status(MODULE, entry, target)
+        if error:
+            return None, error
         return entry, f"养护材料已{action}"

@@ -11,6 +11,7 @@ const Cctv = () => import('@/views/cctv/index.vue')
 const Repair = () => import('@/views/repair/index.vue')
 const Pressure = () => import('@/views/pressure/index.vue')
 const Flow = () => import('@/views/flow/index.vue')
+const FlowEdit = () => import('@/views/flow/edit.vue')
 const Leak = () => import('@/views/leak/index.vue')
 const Dredge = () => import('@/views/dredge/index.vue')
 const Material = () => import('@/views/material/index.vue')
@@ -34,6 +35,8 @@ const router = createRouter({
     { path: '/repair', name: 'repair', component: Repair },
     { path: '/pressure', name: 'pressure', component: Pressure },
     { path: '/flow', name: 'flow', component: Flow },
+    { path: '/flow/new', name: 'flow-create', component: FlowEdit },
+    { path: '/flow/:id', name: 'flow-edit', component: FlowEdit, props: true },
     { path: '/leak', name: 'leak', component: Leak },
     { path: '/dredge', name: 'dredge', component: Dredge },
     { path: '/material', name: 'material', component: Material },
